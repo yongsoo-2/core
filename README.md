@@ -161,4 +161,56 @@ private static final SingletonService instance = new SingletonService();
 
 스프링 컨테이너의 기능 덕분에 고객의 요청이 올 때 마다 생성하는것이 아니라 이미 만들어진 객체를 공유하여 효율적으로 사용이 가능하다.
 
+
 싱글톤 방식의 주의점
+
+무상태(stateless)로 설계해야 한다!
+
+싱글톤 패턴이나 싱글톤 컨테이너나 어떤것을 사용하든 여러 클라이언트가 하나의 같은 객체 인스턴스를 사용하기 때문에 공유 객체의 상태를 유지하게 설계하면 절대 안된다.
+
+- 특정 클라이언트에 의존적인 필드가 있으면 안된다.
+- 특정 클라이언트가 값을 변경할 수 있는 필가 있으면 안된다.
+- 가급적 읽기만 가능해야한다.
+- 필드 대신 자바에서 공유되지 않는 지역변수, 파라미터, ThreadLocal 등을 사용해야한다.
+
+```java
+public class StatefulService {
+
+    private int price;
+
+    public void order(String name, int price) {
+        System.out.println("name : " + name + " price: " + price);
+        this.price = price;
+    }
+
+    public int getPrice() {
+        return price;
+    }
+}
+```
+
+결과 값을 return 하고 실제 사용하는곳에서 지역변수로 사용하여 해결한다.
+
+```java
+public int order(String name, int price) {
+        System.out.println("name : " + name + " price: " + price);
+        return price;
+    }
+```
+
+### @Configuration과 바이트의 마법
+
+```java
+@Configuration
+public class AppConfig {
+
+}
+
+public class configurationTest {
+    ApplicationContext ac = new AnnotationConfigApplicationContext(AppConfig.class);
+
+    }
+}
+```
+
+CGLIB 라이브러리를 이용하여 바이트코드 조작라이브러리를 이용하여 AppConfig 클래스를 상속받은 임의의 다른 클래스를 만들고, 그 다른 클래스를 스프링 빈으로 등록한 것이다.
