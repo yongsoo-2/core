@@ -46,7 +46,7 @@ DIP(Dependency Inversion Principle) : 의존관계 역전 원칙
 
 제어의 역전 IoC(Inversion of Control) 제어 흐름을 직접 제어하는 것이 아니라 외부에서 관리하는것.
 
-의존관계 주입 DI(Dependency Injection) 정적인 클래스 의존관계와 
+의존관계 주입 DI(Dependency Injection) 정적인 클래스 의존관계와
 
 프레임워크 VS 라이브러리
 
@@ -76,11 +76,11 @@ ApplicationContext
 
 - BeanFactory 기능을 모두 상속받아 제공한다.
 - 빈을 관리하고 검색하는 기능 외에 부가기능을 제공한다.
-    - 메시지소스를 활용한 다국어 기능
-    - 환경변수
-    - 애플리케이션 이벤트
-    - 편리한 리소스 조회
-    
+  - 메시지소스를 활용한 다국어 기능
+  - 환경변수
+  - 애플리케이션 이벤트
+  - 편리한 리소스 조회
+
 
 XML 을 이용한  Bean 등록
 
@@ -88,13 +88,13 @@ XML 을 이용한  Bean 등록
 ApplicationContext ac = new GenericXmlApplicationContext("appConfig.xml");
 ```
 
-new GenericXmlApplicationContext 이용하여 Bean 을 등록할수 있다. 
+new GenericXmlApplicationContext 이용하여 Bean 을 등록할수 있다.
 
 .Class 파일과 .XML 을 지원할수 있는 이유는 BeanDefinition 이 있기에 가능하다.
 
-역할과 구현을 개념적으로 분리 되어있기 때문에 스프링 컨테이너는 자바코드인지 XML 인지 몰라도 된다. 
+역할과 구현을 개념적으로 분리 되어있기 때문에 스프링 컨테이너는 자바코드인지 XML 인지 몰라도 된다.
 
-자바 코드의 경우 AnnotatedBeanDefinitionReader , XML 의 경우 XmlBeanDefinitionReader 가  읽어 들어 추상화인 BeanDefinition을 생성하여 스프링컨테이너가 사용하게 된다.
+자바 코드의 경우 AnnotatedBeanDefinitionReader, XML의 경우 XmlBeanDefinitionReader 가  읽어 들어 추상화인 BeanDefinition을 생성하여 스프링컨테이너가 사용하게 된다.
 
 ```java
 public class BeanDefinitionTest {
@@ -131,9 +131,9 @@ private static final SingletonService instance = new SingletonService();
     }
 ```
 
-싱글톤 패턴을 사용하는 이유 
+싱글톤 패턴을 사용하는 이유
 
-  - 레지스트리 설정 및 DBCP 와 같이 인스턴스 딱 1개만 존재해야 하거나 DBCP 와 같이 공통된 객체를 여러개 생성할 경우 메모리 낭비가 되고 두번째 사용시 객체 로딩 시간이 줄어 성능 향상.
+- 레지스트리 설정 및 DBCP 와 같이 인스턴스 딱 1개만 존재해야 하거나 DBCP 와 같이 공통된 객체를 여러개 생성할 경우 메모리 낭비가 되고 두번째 사용시 객체 로딩 시간이 줄어 성능 향상.
 
 인스턴스(instance) : 컴퓨터 저장공간에서 할당된 실체를 의미한다
 
@@ -144,7 +144,7 @@ private static final SingletonService instance = new SingletonService();
 - 클라이언트가 구체 클래스에 의존해서 OCP 원칙을 위반할 가능성이 높다.
 - 내부 속성을 변경하거나 초기하 하기 어렵고 자식클래스를 만들기 어렵다.
 
- 싱글톤 컨테이너
+싱글톤 컨테이너
 
 스프링 컨테이너는 싱글톤 패턴의 문제점을 해결하면서, 객체 인스턴스를 싱글톤(1개) 으로 관리한다.
 
@@ -157,10 +157,9 @@ private static final SingletonService instance = new SingletonService();
 - 복잡한 구현코드가 들어가지 않아도 된다.
 - 기존 싱글톤 패턴에서 위배되던 DIP, OCP등 위반하지 않고 자유롭게 사용가능하다.
 
-싱글톤 컨테이너 적용후 
+싱글톤 컨테이너 적용후
 
 스프링 컨테이너의 기능 덕분에 고객의 요청이 올 때 마다 생성하는것이 아니라 이미 만들어진 객체를 공유하여 효율적으로 사용이 가능하다.
-
 
 싱글톤 방식의 주의점
 
@@ -203,14 +202,75 @@ public int order(String name, int price) {
 ```java
 @Configuration
 public class AppConfig {
+    @Bean
+    public MemberService memberService() {
+        System.out.println("call AppConfig memberService");
+        return new MemberServiceImpl(memberRepository());
+    }
 
-}
+    @Bean
+    public MemberRepository memberRepository() {
+        System.out.println("call AppConfig memberRepository");
+        return new MemoryMemberRepository();
+    }
 
-public class configurationTest {
-    ApplicationContext ac = new AnnotationConfigApplicationContext(AppConfig.class);
+    @Bean
+    public OrderService orderService() {
+        System.out.println("call AppConfig orderService");
+        return new OrderServiceImpl(memberRepository(), discountPolicy());
+    }
 
+    @Bean
+    public DiscountPolicy discountPolicy() {
+        System.out.println("call AppConfig discountPolicy");
+        return new RateDiscountPolicy();
     }
 }
 ```
 
-CGLIB 라이브러리를 이용하여 바이트코드 조작라이브러리를 이용하여 AppConfig 클래스를 상속받은 임의의 다른 클래스를 만들고, 그 다른 클래스를 스프링 빈으로 등록한 것이다.
+```java
+public class configurationTest {
+    ApplicationContext ac = new AnnotationConfigApplicationContext(AppConfig.class);
+		AppConfig bean = ac.getBean(AppConfig.class);
+    System.out.println(bean.getClass());
+    }
+}
+```
+
+new AnnotationConfigApplicationContext(xxxx.class);
+
+위와 같이 config 에 대한 명시가 있기에 굳이 @Configuration 을 사용해야하나....
+
+@Configuration 추가하지 않을 경우 memberRepository가 여러번 호출되어 싱글톤 패턴이 깨진게 된다. Configuration 이 있으면 스프링컨테이너로 관리가 되어 추가한 Bean 들에 대해 싱글톤이 유지가 된다.
+
+그럼 어떻게 싱글톤이 유지가 되는가.?
+
+@Configuation 이 스프링 컨테이너에서 동작이 되며 해당 클래스가 실행 되는 시점에 동적으로
+
+CGLIB 바이트코드 조작라이브러리를 이용하여 AppConfig 클래스를 상속받은 임의의 하위클래스를 만들고, 그 다른 클래스를 스프링 빈으로 등록한 것이다.
+
+컴포넌트 스캔과 의존성 자동주입
+
+자동으로 스프링 빈을 등록(@ComponentScan), 의존성 자동주입(@Autowired)
+
+기존 수동으로 AppConfig 에서 @Bean을 이용하여 등록하는 방식에서 등록이 필요로하는 곳(구현체)에서 @Component 를 사용하여 자동으로 빈을 등록해준다.
+
+@ComponentScan 은 @Compoent가 붙은 모든 클래스를 스프링 빈으로 등록한다.
+
+```java
+@ComponentScan(
+	basePackages = "hello.core.member"
+)
+```
+
+basePackages 를 위와 같이 적용하면 member 패키지 안에 있는 @Component 를 찾아 Bean 으로 등록한다.
+
+@ComponentScan  Default 사용시 설정정보 클래스의 패키지가 시작 위치가 된다.
+
+ComponentScan 기본 대상
+
+- @Component : 컴포넌트 스캔에서 사용
+- @Controller : 스프링 MVC 컨트롤러에서 사용
+- @Service : 스프링 비즈니스 로직에서 사용
+- @Repository : 스프링 데이터 접근 계층에서 사용
+- @Configuration : 스프링 설정 정보에서 사용
