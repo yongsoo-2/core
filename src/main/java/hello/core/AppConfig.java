@@ -36,4 +36,6 @@ public class AppConfig {
         System.out.println("call AppConfig discountPolicy");
         return new RateDiscountPolicy();
     }
+
+    
 }
